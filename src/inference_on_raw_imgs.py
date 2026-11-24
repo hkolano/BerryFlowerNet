@@ -5,14 +5,21 @@ import cv2
 from sahi import AutoDetectionModel
 import numpy as np
 import csv
-dates = ['20240205', '20240222', '20240307']
-rows = ['cam2-row2', 'cam2-row4', 'cam2-row16', 'cam2-row17']
-img_base_dir = './Raw_image_for_analysis/'
+import torch
+# Images are read from <img_base_dir>/<date>/<row>/, i.e. data/test/images/
+dates = ['test']
+rows = ['images']
+img_base_dir = 'data'
 
-save_base_dir = './ultralytics/predictions'
+save_base_dir = 'src/ultralytics/predictions'
 # os.makedirs(save_dir, exist_ok=True)
 
-model_path = './best.pt'
+# best_weights.pt holds only weights, so build the model from CFNet.yaml first
+model = YOLO("src/CFNet.yaml")
+ckpt = torch.load("src/best_weights.pt", map_location="cpu")
+model.model.load_state_dict(ckpt["model"])
+model.model.names = {0: 'bud', 1: 'extendedbud', 2: 'fullbloom',
+                     3: 'greenfruit', 4: 'petalfall'}
 
 colors = {
     'bud': (255, 0, 0),
@@ -27,9 +34,9 @@ slice_size = 1600
 for confidence in confs:
     detection_model = AutoDetectionModel.from_pretrained(
         model_type='ultralytics',
-        model_path=model_path,
+        model=model,
         confidence_threshold=confidence,
-        device="cuda:0",
+        device="cpu",
     )
 
     # Prepare to collect all results
