@@ -6,9 +6,9 @@ from sahi import AutoDetectionModel
 import numpy as np
 import csv
 import torch
-# Images are read from <img_base_dir>/<date>/<row>/, i.e. data/test/images/
-dates = ['test']
-rows = ['images']
+# Images are read from <img_base_dir>/<date>/<row>/, i.e. data/joe_phone_jpgs_3_15/
+dates = ['joe_phone_jpgs_3_15']
+rows = ['']  # no row subfolders
 img_base_dir = 'data'
 
 save_base_dir = 'src/ultralytics/predictions'
@@ -37,6 +37,7 @@ for confidence in confs:
         model=model,
         confidence_threshold=confidence,
         device="cpu",
+        image_size=1600
     )
 
     # Prepare to collect all results
@@ -55,7 +56,7 @@ for confidence in confs:
                 image = cv2.imread(img_dir)
                 img_height, img_width, _ = image.shape
                 result = get_sliced_prediction(
-                    image,
+                    cv2.cvtColor(image, cv2.COLOR_BGR2RGB),  # SAHI expects RGB
                     detection_model,
                     slice_height=slice_size,
                     slice_width=slice_size,
